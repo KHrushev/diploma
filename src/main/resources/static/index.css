@@ -1,0 +1,95 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Calibri, serif;
+}
+
+body {
+    background: floralwhite;
+    color: #1f1318;
+    user-select: none;
+}
+
+#pageHeader {
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 3px solid orangered;
+    cursor: pointer;
+}
+
+.sectionContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.section {
+    margin: 50px;
+    border: 1px solid orangered;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    padding: 10px;
+}
+
+
+.item {
+    border: 2px solid darkorange;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.item.item {
+    margin: 10px 10px 0;
+}
+
+.section:last-child {
+    margin-bottom: 10px;
+}
+
+input, select {
+    padding: 8px;
+}
+
+select {
+    width: 157px;
+}
+
+.inputUnit {
+    width: 100%;
+    margin: 5px 0 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+#resultSection {
+    margin: 50px;
+    padding: 15px;
+    border: 1px solid orangered;
+    border-radius: 12px;
+    visibility: hidden;
+}
+
+@media (max-width: 1250px) {
+    .sectionContainer {
+        flex-direction: column;
+    }
+
+    .section {
+        width: 100%;
+        margin: 0;
+        border: none;
+    }
+
+    @media (max-width: 600px) {
+        .item {
+            border: none;
+            width: 100%;
+            margin: 0;
+        }
+    }
+}

@@ -1,0 +1,283 @@
+<html>
+<head>
+    <title>Welcome Page</title>
+    <link href="index.css" type="text/css" rel="stylesheet">
+</head>
+<body>
+<script>
+
+    const Data = {
+        name: '',
+        routes: null,
+        specialties: null,
+        avgPrice: 0,
+        potCustomerCount: 0,
+        infrastructureLevel: '',
+        rentPrice: 0,
+        rentArea: 0,
+        capitalValue: 0,
+        tax: 0,
+        profitTax: 0
+    };
+
+    const TransportRoute = {
+        costPerUnit: 0,
+        distance: 0,
+        mass: 0
+    };
+    const Specialty = {
+        avgSalary: 0,
+        multiplier: 0,
+        workerCount: 0
+    };
+
+    let transportRoutes = [];
+    let specialties = [];
+    let dataList = [];
+</script>
+
+<h1 id="pageHeader">Визначення оптимального місця для відкриття підприємства</h1>
+
+<div class="sectionContainer">
+    <div class="section">
+        <div class="item">
+            <form method="post" id="mainForm">
+                <h3>Ідентифікатор місцевості (ім'я).</h3>
+                <div class="inputUnit">
+                    <label for="name">Ідентифікатор:</label>
+                    <input required type="text" id="name">
+                </div>
+
+                <h3>Виручка підприємства.</h3>
+                <div class="inputUnit">
+                    <label for="avgPrice">Середня ціна одиниці товару:</label>
+                    <input required type="text" id="avgPrice" pattern="^\d*(\.\d+)?$">
+                </div>
+                <div class="inputUnit">
+                    <label for="profitTax">Податок на виручку, у %:</label>
+                    <input required type="text" id="profitTax" pattern="^\d*(\.\d+)?$">
+                </div>
+                <div class="inputUnit">
+                    <label for="potCustomersCount">Кількість потенційних покупців:</label>
+                    <input required type="text" id="potCustomersCount" pattern="^\d*(\.\d+)?$">
+                </div>
+                <div class="inputUnit">
+                    <label for="infrastructureLevel">Рівень інфраструктури району:</label>
+                    <select required id="infrastructureLevel">
+                        <option selected disabled>Вибір....</option>
+                        <option>Високий</option>
+                        <option>Середній</option>
+                        <option>Низький</option>
+                    </select>
+                </div>
+
+                <h3>Витрати на оренду приміщень.</h3>
+                <div class="inputUnit">
+                    <label for="rentPrice">Розцінка аренди:</label>
+                    <input required type="text" id="rentPrice" pattern="^\d*(\.\d+)?$">
+                </div>
+                <div class="inputUnit">
+                    <label for="rentArea">Площа приміщень:</label>
+                    <input required type="text" id="rentArea" pattern="^\d*(\.\d+)?$">
+                </div>
+
+                <h3>Величина податків на капітал.</h3>
+                <div class="inputUnit">
+                    <label for="capitalValue">Основний капітал:</label>
+                    <input required type="text" id="capitalValue" pattern="^\d*(\.\d+)?$">
+                </div>
+                <div class="inputUnit">
+                    <label for="tax">Ставка податку на основний капітал, у %:</label>
+                    <input required type="text" id="tax" pattern="^\d*(\.\d+)?$">
+                </div>
+
+                <input type="button" id="addDataBtn" value="Додати дані">
+
+                <input type="button" id="sendDataBtn" value="Відправити">
+            </form>
+
+            <div class="item">
+                <form method="get" id="transportForm">
+                    <h3>Витрати та транспортування матеріалів та сировини. Натисніть 'Додати', щоб додати маршрут транспортування.</h3>
+                    <div class="inputUnit">
+                        <label for="costPerUnit">Ціна за перевізку 1 тонни сировини на 1 км:</label>
+                        <input type="text" id="costPerUnit" pattern="^\d*(\.\d+)?$" required>
+                    </div>
+                    <div class="inputUnit">
+                        <label for="distance">Відстань:</label>
+                        <input type="text" id="distance" pattern="^\d*(\.\d+)?$" required>
+                    </div>
+                    <div class="inputUnit">
+                        <label for="mass">Масса:</label>
+                        <input type="text" id="mass" pattern="^\d*(\.\d+)?$" required>
+                    </div>
+                    <input type="submit" id="addRouteBtn" value="Додати маршрут"/>
+                </form>
+            </div>
+
+            <div class="item">
+                <form method="get" id="specialtyForm">
+                    <h3>Витрати на заробітну плату. Натисніть 'Додати', щоб додати професію</h3>
+                    <div class="inputUnit">
+                        <label for="avgSalary">Середня зарплата даної професії:</label>
+                        <input type="text" id="avgSalary" pattern="^\d*(\.\d+)?$" required>
+                    </div>
+                    <div class="inputUnit">
+                        <label for="mandatoryFundsMultiplier">Коефіцієнт, який враховує витрати підприємства в обов’язкові державні соціальні фонди, в відносних одиницях:</label>
+                        <input type="text" id="mandatoryFundsMultiplier" pattern="^\d*(\.\d+)?$" required>
+                    </div>
+                    <div class="inputUnit">
+                        <label for="workerCount">Число робітників на даній професії:</label>
+                        <input type="text" id="workerCount" pattern="^\d*(\.\d+)?$" required>
+                    </div>
+                    <input type="submit" id="addSpecialtyBtn" value="Додати спеціальність"/>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultSection"></div>
+</div>
+<script>
+    const transportForm = document.getElementById("transportForm");
+    transportForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        let check = transportForm.checkValidity();
+        transportForm.reportValidity();
+        if (check) {
+            addTransportRoute();
+        }
+    });
+    function addTransportRoute() {
+        const newTransportRoute = Object.create(TransportRoute);
+
+        const costPerUnit = document.getElementById("costPerUnit").value;
+        const distance = document.getElementById("distance").value;
+        const mass = document.getElementById("mass").value;
+
+        newTransportRoute.costPerUnit = costPerUnit;
+        newTransportRoute.distance = distance;
+        newTransportRoute.mass = mass;
+
+        transportRoutes.push(newTransportRoute);
+
+        document.getElementById("costPerUnit").value = '';
+        document.getElementById("distance").value = '';
+        document.getElementById("mass").value = '';
+    }
+
+    const specialtyForm = document.getElementById("specialtyForm");
+    specialtyForm.addEventListener('submit', function (event) {
+        event.preventDefault();
+        const check = specialtyForm.checkValidity;
+        specialtyForm.reportValidity();
+        if (check) {
+            addSpecialty();
+        }
+    });
+    function addSpecialty() {
+        const avgSalary = document.getElementById("avgSalary").value;
+        const multiplier = document.getElementById("mandatoryFundsMultiplier").value;
+        const workerCount = document.getElementById("workerCount").value;
+
+        if (avgSalary === '' || multiplier === '' || workerCount === '') {
+            alert("You have to specify all values");
+        } else {
+            const newSpecialty = Object.create(Specialty);
+
+            newSpecialty.avgSalary = avgSalary;
+            newSpecialty.multiplier = multiplier;
+            newSpecialty.workerCount = workerCount;
+
+            specialties.push(newSpecialty);
+
+            document.getElementById("avgSalary").value = '';
+            document.getElementById("mandatoryFundsMultiplier").value = '';
+            document.getElementById("workerCount").value = '';
+        }
+    }
+
+    const mainForm = document.getElementById("mainForm");
+    const addDataBtn = document.getElementById("addDataBtn");
+    addDataBtn.addEventListener('click', function () {
+        const check = mainForm.checkValidity();
+        mainForm.reportValidity();
+
+        if (check) {
+            const name = document.getElementById("name").value;
+            const avgPrice = document.getElementById("avgPrice").value;
+            const potCustomerCount = document.getElementById("potCustomersCount").value;
+            const infrastructureList = document.getElementById("infrastructureLevel");
+            const infrastructure = infrastructureList.options[infrastructureList.selectedIndex].value;
+            const rentPrice = document.getElementById("rentPrice").value;
+            const rentArea = document.getElementById("rentArea").value;
+            const capitalValue = document.getElementById("capitalValue").value;
+            const tax = document.getElementById("tax").value;
+            const profitTax = document.getElementById("profitTax").value;
+
+            if (name === ''|| avgPrice === '' || potCustomerCount === '' || infrastructure === '' || rentPrice === '' || rentArea === '' || rentPrice === '' || capitalValue === '' || tax === '' || profitTax === '') {
+                alert("You have to specify all the values");
+            } else {
+                if (transportRoutes.length === 0 || specialties.length === 0) {
+                    alert("You did not add any transport routes or specialties Cannot proceed.");
+                } else {
+                    const data = Object.create(Data);
+
+                    data.name = name;
+                    data.avgPrice = avgPrice;
+                    data.potCustomerCount = potCustomerCount;
+                    data.infrastructureLevel = infrastructure;
+                    data.rentPrice = rentPrice;
+                    data.rentArea = rentArea;
+                    data.capitalValue = capitalValue;
+                    data.tax = tax;
+                    data.profitTax = profitTax;
+                    data.routes = transportRoutes;
+                    data.specialties = specialties;
+
+                    dataList.push(data);
+                    dataList.push(data);
+
+                    let inputs = document.querySelectorAll("input[type='text']");
+
+                    inputs.forEach(input => input.value = '');
+
+                    transportRoutes = [];
+                    specialties = [];
+                }
+            }
+        }
+    });
+
+    const sendDataBtn = document.getElementById("sendDataBtn");
+    sendDataBtn.addEventListener('click', function () {
+        console.log(dataList);
+        if (dataList.length <= 1) {
+            alert("You did not add any data for comparison. Cannot proceed.");
+        } else {
+            sendData();
+            dataList = [];
+            transportRoutes = [];
+            specialties = [];
+            document.getElementById("resultSection").style.visibility = "visible";
+        }
+    });
+
+    function sendData() {
+        fetch('/process', {
+            method: "POST",
+            body: JSON.stringify(dataList),
+            headers: {
+                "Content-type": "application/json"
+            }
+        }).then(function (response) {
+            return response.text();
+        }).then(function (text) {
+            document.getElementById("resultSection").innerHTML = text;
+        }).catch(function (error) {
+            console.error(error);
+        });
+    }
+</script>
+</body>
+</html>
